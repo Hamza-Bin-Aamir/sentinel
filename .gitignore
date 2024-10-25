@@ -2,3 +2,6 @@
 *.out
 *.gch
 *.exe
+*.py
+*.pyc
+*.log

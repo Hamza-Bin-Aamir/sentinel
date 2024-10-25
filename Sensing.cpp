@@ -1,8 +1,27 @@
 #include "Sensing.hpp"
 #include <iostream>
-#include <cassert>
+#include <cassert> // using this for unit tests 
+#include <cstdlib> // using this for system
+#include <thread> // using this for sleep
+#include <chrono> // for timing
+#include <fstream> // for file handling
+#include <sstream> // for string streams
+
+#if BUILD_PLATFORM == LINUX
+    #define CLEAR_SCREEN "clear"
+#elif BUILD_PLATFORM == WINDOWS
+    #define CLEAR_SCREEN "cls"
+#endif
 
 using namespace std;
+
+
+/// @brief Sleeps for a certain amount of milliseconds
+/// Credits to HighCommander4 on StackOverflow: https://stackoverflow.com/questions/4184468/sleep-for-milliseconds 
+/// @param milliseconds time to sleep for in milliseconds
+void sleep_for(unsigned int milliseconds) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
 
 int main(){
     // Declare example data 
@@ -10,7 +29,6 @@ int main(){
     RocketPhysics::Vector2D ExampleB(100.0f, 1.1f, true, 'V');
     RocketPhysics::Vector3D ExampleC(200.0f, 201.0f, 202.0f, 'F');
     RocketPhysics::Vector3D ExampleD(200.0f, 0.2f, 1.2f, 'V');
-
     
     #ifdef ENABLE_UTEST
         // UNIT TESTS
@@ -70,5 +88,39 @@ int main(){
     cout << endl << "C*D: "; cout << ExampleC * ExampleD; // Dot product
     cout << endl << "C^D: "; (ExampleC ^ ExampleD).Show(); // Cross product (3D)
 
-    cout << endl; return 0;
+
+    cout << endl << "Press any key to continue...";
+    cin.get();
+
+    std::ifstream file("./Sensing/PreviousLaunch.log"); 
+
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open the log file." << std::endl;
+        return 1;
+    }
+
+    stringstream Buffer;
+
+    ifstream infile("./Sensing/PreviousLaunch.log");
+
+    if (!infile.is_open()) {
+        cerr << "Error: Could not open log file " << endl;
+        return 1;
+    }
+    string line;
+    // Screen rendering loop
+    while (getline(infile, line)){
+        system(CLEAR_SCREEN);
+
+        stringstream data(line);
+
+        // Process the tokens here
+        string token;
+        while (data >> token){
+            cout << token << endl;
+        }
+
+        sleep_for(100); // We update at a frequency of 10Hz
+    }
+    cout << endl;   return 0;
 }
