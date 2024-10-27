@@ -1,4 +1,5 @@
 #include "./Sensing/Physics.hpp"
+#include "./Sensing/SensorData.hpp"
 
 #define ENABLE_UTEST
 #define TEST_FLOAT_PRECISION 0.01

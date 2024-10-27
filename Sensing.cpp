@@ -23,6 +23,17 @@ void sleep_for(unsigned int milliseconds) {
     std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
 }
 
+void ShowFastList(RocketSensors::FastList the_list, string Name){
+    RocketSensors::Node NodeBuffer = the_list.ReadSequential();
+    cout << endl << Name << " -> ";
+    for (int i =0; i<10; i++){
+        cout << NodeBuffer.Data.Scalar << " -> ";
+        NodeBuffer = the_list.ReadSequential();
+    }
+}
+
+enum LogDTypes{Pitch=0, Roll, Yaw, Velocity, Acceleration, Height, TimeStamp};
+
 int main(){
     // Declare example data 
     RocketPhysics::Vector2D ExampleA(22.3f, 31.4f, false, 'F');
@@ -107,20 +118,63 @@ int main(){
         cerr << "Error: Could not open log file " << endl;
         return 1;
     }
-    string line;
-    // Screen rendering loop
-    while (getline(infile, line)){
-        system(CLEAR_SCREEN);
+    string line, token, bufferA, bufferB;
+    RocketSensors::FastList pitch, roll, yaw, velocity, acceleration, height;
+    LogDTypes ScanFor;
 
+    // Data loading loop
+    while (getline(infile, line)){
         stringstream data(line);
 
-        // Process the tokens here
-        string token;
-        while (data >> token){
-            cout << token << endl;
-        }
+        while(data >> token){
+            if(token == "Pitch"){ ScanFor = Pitch; continue; }
+            if(token == "Roll"){ ScanFor = Roll; continue; }
+            if(token == "Yaw"){ ScanFor = Yaw; continue; }
+            if(token == "Velocity"){ ScanFor = Velocity; continue; }
+            if(token == "Acceleration"){ ScanFor = Acceleration; continue; }
+            if(token == "Height"){ ScanFor = Height; continue;}
+            if(token == "TimeStamp") { ScanFor = TimeStamp; continue; }
 
-        sleep_for(100); // We update at a frequency of 10Hz
+            switch (ScanFor){
+                case Pitch:
+                    pitch.Insert(stof(token));
+                break;
+
+                case Roll:
+                    roll.Insert(stof(token));
+                break;
+
+                case Yaw:
+                    yaw.Insert(stof(token));
+                break;
+
+                case Velocity:
+                    data >> bufferA >> bufferB;
+                    velocity.Insert(*(new RocketPhysics::Vector3D(stof(token), stof(bufferA), stof(bufferB), 'V')));
+                break;
+
+                case Acceleration:
+                    data >> bufferA >> bufferB;
+                    acceleration.Insert(*(new RocketPhysics::Vector3D(stof(token), stof(bufferA), stof(bufferB), 'A')));
+                break;
+
+                case Height:
+                    height.Insert(stof(token));
+                break;
+
+                default:
+                break;
+            }
+        }
     }
+
+    ShowFastList(pitch, "Pitch");
+    ShowFastList(roll, "Roll");
+    ShowFastList(yaw, "Yaw");
+    ShowFastList(velocity, "Velocity");
+    ShowFastList(acceleration, "Acceleration");
+    ShowFastList(height, "Altitude");
+
+
     cout << endl;   return 0;
 }
