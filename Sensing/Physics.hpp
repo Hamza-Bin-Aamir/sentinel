@@ -145,8 +145,7 @@ public:
 
 /// THE VECTOR PRIMITIVE
 /// @brief The vector 3D data type is a primitive data type that can contain a 3D representation of a float, 
-/// you may use a direction, magnitude or a magnitude X, Y, Z to create or access the data, 
-/// but it is stored in the magnitude X, Y, Z formats
+/// you can ONLY use magnitude X, Y, Z to create or access the data
 class Vector3D {
 private:
     float DataX;
@@ -159,35 +158,21 @@ public:
     /// @param DataA float, a magnitude
     /// @param DataB float, EITHER a magnitude OR a direction (degrees) 
     /// @param DataC float, EITHER a magnitude OR an angle (degrees) 
-    /// @param Angle boolean, true if the second and third values are angles
     /// @param DType character, the datatype of the value
-    Vector3D(const float& DataA, const float& DataB, const float& DataC, const bool& Angle, const char& DType='X') {
-        Set(DataA, DataB, DataC, Angle, DType);
+    Vector3D(const float& DataA, const float& DataB, const float& DataC, const char& DType='X') {
+        Set(DataA, DataB, DataC, DType);
     }
 
     /// @brief Sets all the values for the vector
     /// @param DataA float, a magnitude
     /// @param DataB float, EITHER a magnitude OR a direction (degrees) 
     /// @param DataC float, EITHER a magnitude OR an angle (degrees) 
-    /// @param Angle boolean, true if the second and third values are angles
     /// @param DType character, the datatype of the value
-    void Set(const float& DataA, const float& DataB, const float& DataC, const bool& Angle, const char& DType='X') {
+    void Set(const float& DataA, const float& DataB, const float& DataC, const char& DType='X') {
         DataType = DType;
-        // If both values are magnitudes, enter them directly
-        if (!Angle) {
-            DataX = DataA;
-            DataY = DataB;
-            DataZ = DataC;
-            return;
-        }
-
-        // If the second and third values are angles, calculate the actual direction (spherical coordinates)
-        float theta = DataB * (M_PI / 180.0f); // Azimuth (longitude)
-        float phi = DataC * (M_PI / 180.0f);   // Elevation (latitude)
-
-        DataX = DataA * sin(phi) * cos(theta);
-        DataY = DataA * sin(phi) * sin(theta);
-        DataZ = DataA * cos(phi);
+        DataX = DataA;
+        DataY = DataB;
+        DataZ = DataC;
     }
 
     /// @brief Setter for the datatype
@@ -202,21 +187,10 @@ public:
         return DataType;
     }
 
-    /// @brief Getter for the data (in spherical format)
-    /// @return a pair of floats, where the first value is the magnitude, 
-    /// the second value is the azimuth (theta), and the third value is the elevation (phi)
-    inline float* GetSpherical() const {
-        float* result = new float[3];
-        result[0] = sqrt(DataX * DataX + DataY * DataY + DataZ * DataZ); 
-        result[1] = atan2(DataY, DataX); // Azimuth
-        result[2] = acos(DataZ / result[0]); // Elevation
-        return result;
-    }
-
     /// @brief Getter for the data (in magnitude X, Y, Z format)
     /// @return a pair of floats, where the first value is the magnitude X, 
     /// the second value is the magnitude Y, and the third value is the magnitude Z
-    inline float* GetCartesian() const {
+    inline float* GetAll() const {
         return new float[3] {DataX, DataY, DataZ}; 
     }
 
@@ -242,28 +216,28 @@ public:
     /// @param v The vector to add
     /// @return A new vector as the result
     inline Vector3D operator+(const Vector3D& v) const {
-        return Vector3D(DataX + v.GetX(), DataY + v.GetY(), DataZ + v.GetZ(), false, DataType);
+        return Vector3D(DataX + v.GetX(), DataY + v.GetY(), DataZ + v.GetZ(), DataType);
     }
 
     /// @brief Subtraction operator
     /// @param v The vector to subtract
     /// @return A new vector as the result
     inline Vector3D operator-(const Vector3D& v) const {
-        return Vector3D(DataX - v.GetX(), DataY - v.GetY(), DataZ - v.GetZ(), false, DataType);
+        return Vector3D(DataX - v.GetX(), DataY - v.GetY(), DataZ - v.GetZ(), DataType);
     }
 
     /// @brief Division operator
     /// @param s The scalar to divide by
     /// @return A new vector as the result
     inline Vector3D operator/(const float& s) {
-        return Vector3D(DataX / s, DataY / s, DataZ / s, false, 'X');
+        return Vector3D(DataX / s, DataY / s, DataZ / s, 'X');
     }
 
     /// @brief Multiplication operator
     /// @param s The scalar to divide by
     /// @return A new vector as the result
     inline Vector3D operator*(const float& s) {
-        return Vector3D(DataX * s, DataY * s, DataZ * s, false, 'X');
+        return Vector3D(DataX * s, DataY * s, DataZ * s, 'X');
     }
 
     /// @brief Dot product
@@ -280,23 +254,14 @@ public:
         return Vector3D(
             DataY * v.GetZ() - DataZ * v.GetY(),
             DataZ * v.GetX() - DataX * v.GetZ(),
-            DataX * v.GetY() - DataY * v.GetX(),
-            false, 'X'
+            DataX * v.GetY() - DataY * v.GetX(), 
+            'X'
         );
     }
 
     /// @brief Shows the vector in X/Y/Z format
-    inline void ShowCartesian() const {
+    inline void Show() const {
         std::cout << "X: " << DataX << ", Y: " << DataY << ", Z: " << DataZ;
-    }
-
-    /// @brief Shows the vector in Magnitude/Theta/Phi format
-    inline void ShowSpherical() const {
-        float* spherical = GetSpherical();
-        std::cout << "Magnitude: " << spherical[0] 
-                << ", Theta (Azimuth): " << spherical[1] * 180.0 / M_PI 
-                << ", Phi (Elevation): " << spherical[2] * 180.0 / M_PI;
-        delete[] spherical;
     }
 };
 };
