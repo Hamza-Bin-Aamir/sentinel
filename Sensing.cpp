@@ -27,8 +27,51 @@ void ShowFastList(RocketSensors::FastList the_list, string Name){
     RocketSensors::Node NodeBuffer = the_list.ReadSequential();
     cout << endl << Name << " -> ";
     for (int i =0; i<10; i++){
-        cout << NodeBuffer.Data.Scalar << " -> ";
+        if(NodeBuffer.SelectedType == RocketSensors::Scalar){
+            cout << NodeBuffer.Data.Scalar << " -> ";
+        }
+        else if(NodeBuffer.SelectedType == RocketSensors::Vect_2D){
+            cout << NodeBuffer.Data.Vect2D.GetX() << ", " << NodeBuffer.Data.Vect2D.GetY() << " -> ";
+        }
+        else {
+            cout << NodeBuffer.Data.Vect3D.GetX() << ", " << NodeBuffer.Data.Vect3D.GetY() << ", " << NodeBuffer.Data.Vect3D.GetZ() << " -> ";
+        }
+
         NodeBuffer = the_list.ReadSequential();
+    }
+}
+
+void TransferToDeadlineStack(RocketSensors::FastList& the_list, RocketSensors::DeadlineStack& the_stack){
+    RocketSensors::Node NodeBuffer = the_list.ReadSequential();
+    if(NodeBuffer.SelectedType == RocketSensors::Scalar){
+        the_stack.Insert(NodeBuffer.Data.Scalar, NodeBuffer.TimeStamp);
+    }
+    else if(NodeBuffer.SelectedType == RocketSensors::Vect_2D){
+        the_stack.Insert(NodeBuffer.Data.Vect2D, NodeBuffer.TimeStamp);
+    }
+    else {
+        the_stack.Insert(NodeBuffer.Data.Vect3D, NodeBuffer.TimeStamp);
+    }
+}
+
+void ShowDataWithinDeadline(RocketSensors::DeadlineStack the_stack, string Name){
+    cout << endl << Name << " (latest ten, if within deadline):";
+    for(int i=0; i<10; i++){
+        try{
+            RocketSensors::Node* Buffer = the_stack.Pop();
+            if(Buffer->SelectedType == RocketSensors::Scalar){
+                cout << Buffer->Data.Scalar << " <-> ";
+            }
+            else if(Buffer->SelectedType == RocketSensors::Vect_2D){
+                Buffer->Data.Vect2D.ShowCartesian(); cout << " <-> ";
+            }
+            else {
+                Buffer->Data.Vect3D.Show(); cout << " <-> ";
+            }
+        }
+        catch(...){
+            break;
+        }
     }
 }
 
@@ -120,6 +163,7 @@ int main(){
     }
     string line, token, bufferA, bufferB;
     RocketSensors::FastList pitch, roll, yaw, velocity, acceleration, height;
+    RocketSensors::DeadlineStack pitchStack(0.04), rollStack(0.04), yawStack(0.04), velocityStack(0.04), accelerationStack(0.04), heightStack(0.04);
     LogDTypes ScanFor;
 
     // Data loading loop
@@ -166,15 +210,28 @@ int main(){
                 break;
             }
         }
+        
+        TransferToDeadlineStack(pitch, pitchStack);
+        TransferToDeadlineStack(roll, rollStack);
+        TransferToDeadlineStack(yaw, yawStack);
+        TransferToDeadlineStack(velocity, velocityStack);
+        TransferToDeadlineStack(acceleration, accelerationStack);
+        TransferToDeadlineStack(height, heightStack);
     }
+    
+    pitch.ResetRead(); ShowFastList(pitch, "Pitch");
+    roll.ResetRead(); ShowFastList(roll, "Roll");
+    yaw.ResetRead(); ShowFastList(yaw, "Yaw");
+    velocity.ResetRead(); ShowFastList(velocity, "Velocity");
+    acceleration.ResetRead(); ShowFastList(acceleration, "Acceleration");
+    height.ResetRead(); ShowFastList(height, "Altitude");
 
-    ShowFastList(pitch, "Pitch");
-    ShowFastList(roll, "Roll");
-    ShowFastList(yaw, "Yaw");
-    ShowFastList(velocity, "Velocity");
-    ShowFastList(acceleration, "Acceleration");
-    ShowFastList(height, "Altitude");
-
+    ShowDataWithinDeadline(pitchStack, "Pitch");
+    ShowDataWithinDeadline(rollStack, "Roll");
+    ShowDataWithinDeadline(yawStack, "Yaw");
+    ShowDataWithinDeadline(velocityStack, "Velocity");
+    ShowDataWithinDeadline(accelerationStack, "Acceleration");
+    ShowDataWithinDeadline(heightStack, "Height");
 
     cout << endl;   return 0;
 }
