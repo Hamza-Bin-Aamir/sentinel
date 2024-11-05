@@ -34,11 +34,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.front == 1)
             {
-                g[i].angle = pitch;
+                g[i].angle = ((pitch*60)/360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = -1*pitch;
+                g[i].angle = -1*((pitch*60)/360);
             }
         }
     }
@@ -49,11 +49,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.front == 1)
             {
-                g[i].angle = -1*pitch;
+                g[i].angle = -1*((pitch*60)/360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = pitch;
+                g[i].angle = ((pitch*60)/360);
             }
         }
     }
@@ -64,11 +64,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = yaw;
+                g[i].angle = ((yaw*60)/360);
             }
             if (g[i].mount.left == 0)
             {
-                g[i].angle = -1*yaw;
+                g[i].angle = -1*((yaw*60)/360);
             }
         }
     }
@@ -79,11 +79,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = -1*yaw;
+                g[i].angle = -1*((yaw*60)/360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = yaw;
+                g[i].angle = ((yaw*60)/360);
             }
         }
     }
