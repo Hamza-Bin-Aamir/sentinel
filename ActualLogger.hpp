@@ -53,7 +53,7 @@ class DataLogger{
     DataLogger(const string& filePath = "rocket_data.txt"): 
         head(nullptr), tail(nullptr), dataCount(0), logFilePath(filePath) {}
 
-    string formatDataForFile(const Logs& log){
+    string formatDataForFile(const Logs& logs){
     std::stringstream ss;
     ss << std::fixed << std::setprecision(6);
     
@@ -83,4 +83,136 @@ class DataLogger{
     file << formatDataForFile(node->data) << endl;
     }
 
+    Logs parseDataFromFile(const string& line) const {
+        stringstream ss(line);
+        string token;
+        Logs logs;       
+        try {
+            //Done by following format
+            getline(ss, token, ',');
+            data.timestamp = stod(token);
+            
+            getline(ss, token, ',');
+            data.gps.latitude = stod(token);
+            
+            getline(ss, token, ',');
+            data.gps.longitude = stod(token);
+            
+            getline(ss, token, ',');
+            data.gps.altitude = stod(token);
+            
+            getline(ss, token, ',');
+            data.bearing = stod(token);
+            
+            getline(ss, token, ',');
+            data.velocity = stod(token);
+            
+            getline(ss, token, ',');
+            data.acceleration = stod(token);
+            
+            getline(ss, token, ',');
+            data.temperature = stod(token);
+            
+            getline(ss, token, ',');
+            data.pressure = stod(token);
+            
+        } catch (const exception& e) {
+            throw runtime_error("Error parsing data line: " + line);
+        }
+        
+        return logs;
+    }
+
+        void clearCache() {
+        DataNode* current = head;
+        while (current) {
+            DataNode* next = current->next;
+            delete current;
+            current = next;
+        }
+        head = tail = nullptr;
+        dataCount = 0;
+    }
+
+    void addDataPoint(const Logs& logs){
+        DataNode* newNode = new DataNode(logs);
+        if(dataCount >= CACHE_SIZE){
+            writeNodeToFile(head);
+            DataNode* oldhead = head;
+            head = head->next;
+            if(head)
+                head->prev = NULL;
+            delete oldhead;
+            dataCount--;
+        }
+
+        if(head == NULL)
+            head = tail = newNode;
+        else{
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+        dataCount++;
+    }
+
+    // Data retrieval
+    SensorData* getLatestData() const {
+        if(tail)
+            return &(tail->data);
+        else
+            return NULL;
+    }
+
+    vector<Logs> getLastNReadings(int n) const {
+        vector<Logs> readings;
+        DataNode* current = tail;
+        int count = 0;
+
+        while (current && count < n) {
+            readings.push_back(current->data);
+            current = current->prev;
+            count++;
+        }
+
+        return readings;
+    }
+
+    //Analysis functions
+    double AverageVelocity()const{
+        if(!head)
+            return 0.0;
+
+        DataNode* current = head;
+        double sum = 0.0;
+        int count = 0;
+
+        while(current){
+            sum += current->data.velocity;
+            count++;
+            current = current->next;
+        }
+
+        if(count == 0)
+            return 0.0;
+        else
+            return sum/count;
+    }
+
+    double calculateDistance(const Coordinates& coord1, const Coordinates& coord2) const {
+        // Formula for distance between two GPS coordinates
+        const double PI = 3.14159;
+        const double R = 6371000; // Earth's radius in meters
+        double lat1 = coord1.latitude * PI / 180;
+        double lat2 = coord2.latitude * PI / 180;
+        double deltaLat = (coord2.latitude - coord1.latitude) * PI / 180;
+        double deltaLon = (coord2.longitude - coord1.longitude) * PI / 180;
+
+        double a = sin(deltaLat/2) * sin(deltaLat/2) +
+                  cos(lat1) * cos(lat2) *
+                  sin(deltaLon/2) * sin(deltaLon/2);
+        double c = 2 * atan2(sqrt(a), sqrt(1-a));
+
+        return R * c;
+    }
 };
