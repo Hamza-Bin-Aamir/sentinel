@@ -54,8 +54,8 @@ class DataLogger{
         head(nullptr), tail(nullptr), dataCount(0), logFilePath(filePath) {}
 
     string formatDataForFile(const Logs& logs){
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(6);
+    stringstream ss;
+    ss << fixed << setprecision(6);
     
     // Format: timestamp,lat,lon,alt,bearing,velocity,accel,temp,pressure
     ss << data.timestamp << ","
@@ -88,7 +88,7 @@ class DataLogger{
         string token;
         Logs logs;       
         try {
-            //Done by following format
+            //As the files were formated
             getline(ss, token, ',');
             data.timestamp = stod(token);
             
@@ -199,7 +199,7 @@ class DataLogger{
             return sum/count;
     }
 
-    double calculateDistance(const Coordinates& coord1, const Coordinates& coord2) const {
+    double Distance(const Coordinates& coord1, const Coordinates& coord2) const {
         // Formula for distance between two GPS coordinates
         const double PI = 3.14159;
         const double R = 6371000; // Earth's radius in meters
@@ -214,5 +214,66 @@ class DataLogger{
         double c = 2 * atan2(sqrt(a), sqrt(1-a));
 
         return R * c;
+    }
+
+    Double TotalDistance()const{
+        if(!head)
+            return 0.0;
+
+        DataNode* current = head;
+        double totalDistance = 0.0;
+
+        while(current){
+            totalDistance += Distance(current->data.gps,current->next->data.gps);
+            current = current->next;
+        }
+        return totalDistance;
+    }
+
+    double MaxAltitude() const {
+        if (!head) return 0.0;
+        
+        double maxAlt = head->data.gps.altitude;
+        DataNode* current = head->next;
+        
+        while (current) {
+            if (current->data.gps.altitude > maxAlt) {
+                maxAlt = current->data.gps.altitude;
+            }
+            current = current->next;
+        }
+        
+        return maxAlt;
+    }
+
+    //File Operarions
+    void SaveAllDataToFile(){
+        ofstream file(logFilePath,ios::app);
+        if(!file)
+            throw runtime_error("Unable to open file for writing: " + logFilePath);
+
+        DataNode* current = head;
+        while(current){
+            file << formatDataForFile(current->data) << endl;
+            current->next;
+        }
+    }
+
+    void ReadFromFile(){
+        ifstream file(logFilepath);
+        if(!file)
+            throw runtime_error("Unable to open file for writing: " + logFilePath);
+
+        clearCache();
+        string line;
+        
+        while (getline(file, line)) {
+            try {
+                Logs logs = parseDataFromFile(line);
+                addDataPoint(logs);
+            } catch (const exception& e) {
+                cerr << "Error parsing line: " << e.what() << endl;
+            }
+        }
     }
 };
