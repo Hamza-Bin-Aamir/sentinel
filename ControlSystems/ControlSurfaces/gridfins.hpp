@@ -88,3 +88,36 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         }
     }
 }
+
+void gyaw(gridfin g[], int gnum, float yaw)
+{
+    if (yaw > 0) // Nose Up
+    {
+        for (int i = 0; i < gnum; i++)
+        {
+            if (g[i].mount.left == 1)
+            {
+                g[i].angle = ((yaw*60)/360);
+            }
+            if (g[i].mount.left == 0)
+            {
+                g[i].angle = -1*((yaw*60)/360);
+            }
+        }
+    }
+
+    if (yaw < 0) // Nose Up
+    {
+        for (int i = 0; i < gnum; i++)
+        {
+            if (g[i].mount.left == 1)
+            {
+                g[i].angle = -1*((yaw*60)/360);
+            }
+            if (g[i].mount.front == 0)
+            {
+                g[i].angle = ((yaw*60)/360);
+            }
+        }
+    }
+}
