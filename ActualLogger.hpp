@@ -1,3 +1,6 @@
+#ifndef DATA_LOGGER_HPP
+#define DATA_LOGGER_HPP
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -45,7 +48,7 @@ class DataLogger{
 
     DataNode* head;
     DataNode* tail;
-    size_t dataCount;
+    long int dataCount;
     static const int CACHE_SIZE = 20;
     string logFilepath;
 
@@ -123,17 +126,8 @@ class DataLogger{
         return logs;
     }
 
-        void clearCache() {
-        DataNode* current = head;
-        while (current) {
-            DataNode* next = current->next;
-            delete current;
-            current = next;
-        }
-        head = tail = nullptr;
-        dataCount = 0;
-    }
 
+    //core functions
     void addDataPoint(const Logs& logs){
         DataNode* newNode = new DataNode(logs);
         if(dataCount >= CACHE_SIZE){
@@ -246,6 +240,17 @@ class DataLogger{
         return maxAlt;
     }
 
+    void clearCache() {
+        DataNode* current = head;
+        while (current) {
+            DataNode* next = current->next;
+            delete current;
+            current = next;
+        }
+        head = tail = nullptr;
+        dataCount = 0;
+    }
+
     //File Operarions
     void SaveAllDataToFile(){
         ofstream file(logFilePath,ios::app);
@@ -276,4 +281,11 @@ class DataLogger{
             }
         }
     }
+
+    //Deconstructor
+    ~DataLogger() {
+        clearCache();
+    }
 };
+
+#endif
