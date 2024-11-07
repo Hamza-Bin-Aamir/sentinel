@@ -23,16 +23,17 @@ namespace RocketSensors{
     struct Node{
         PhysicsTypeNames SelectedType;
         Node* Next;
+        Node* Prev; // The Fast List class does NOT utilise this parameter
         GenericPhysicsType Data;
         std::chrono::milliseconds TimeStamp;
         
-        Node(RocketPhysics::Vector3D Data): Data(Data), SelectedType(Vect_3D), TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr) {};
-        Node(RocketPhysics::Vector2D Data): Data(Data), SelectedType(Vect_2D), TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr) {};
-        Node(float Data): Data(Data), SelectedType(Scalar),TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr) {};
+        Node(RocketPhysics::Vector3D Data): Data(Data), SelectedType(Vect_3D), TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr), Prev(nullptr) {};
+        Node(RocketPhysics::Vector2D Data): Data(Data), SelectedType(Vect_2D), TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr), Prev(nullptr) {};
+        Node(float Data): Data(Data), SelectedType(Scalar),TimeStamp(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())), Next(nullptr), Prev(nullptr) {};
 
-        Node(RocketPhysics::Vector3D Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Vect_3D), TimeStamp(TimeStamp), Next(nullptr) {};
-        Node(RocketPhysics::Vector2D Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Vect_2D), TimeStamp(TimeStamp), Next(nullptr) {};
-        Node(float Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Scalar), TimeStamp(TimeStamp), Next(nullptr) {};
+        Node(RocketPhysics::Vector3D Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Vect_3D), TimeStamp(TimeStamp), Next(nullptr), Prev(nullptr) {};
+        Node(RocketPhysics::Vector2D Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Vect_2D), TimeStamp(TimeStamp), Next(nullptr), Prev(nullptr) {};
+        Node(float Data, std::chrono::milliseconds TimeStamp): Data(Data), SelectedType(Scalar), TimeStamp(TimeStamp), Next(nullptr), Prev(nullptr) {};
         
 
         RocketPhysics::Vector3D Get3D(){
@@ -146,6 +147,10 @@ namespace RocketSensors{
             tail = tail->Next;
         }
 
+        inline void ResetRead(){
+            last_read = head;
+        }
+
         /// @brief O(1) access the unread value (FIFO)
         /// @return Unread node
         Node& ReadSequential(){
@@ -169,5 +174,100 @@ namespace RocketSensors{
             last_read = last_read->Next;
             return *last_read;
         }
+    };
+
+    /// @brief The deadline stack allows us to discard old values based on a preset deadline, 
+    /// This ensures that only recent data is passed on for further processing
+    class DeadlineStack{
+        private:
+            Node* head;
+            Node* tail;
+            float DeadlineSeconds;
+
+        public:
+            DeadlineStack(): head(nullptr), tail(nullptr), DeadlineSeconds(0.1) {};
+            DeadlineStack(float DeadlineSeconds): head(nullptr), tail(nullptr), DeadlineSeconds(DeadlineSeconds) {};
+
+            /// @brief Add a 3D vector to the stack
+            /// @param data the vector to insert
+            /// @param timestamp the time the vector was inserted
+            void Insert(RocketPhysics::Vector3D Insertion, std::chrono::milliseconds TimeStamp){
+                // CASE A: There are no values in the list
+                if(!head){
+                    head = new Node(Insertion, TimeStamp);
+                    tail = head;
+                    return;
+                }
+
+                // CASE B: There are values already in the list
+                tail->Next = new Node(Insertion, TimeStamp);
+                tail->Next->Prev = tail;
+                tail = tail->Next;
+            }
+
+            /// @brief Add a 2D vector to the stack
+            /// @param data the vector to insert
+            /// @param timestamp the time the vector was inserted
+            void Insert(RocketPhysics::Vector2D Insertion, std::chrono::milliseconds TimeStamp){
+                // CASE A: There are no values in the list
+                if(!head){
+                    head = new Node(Insertion, TimeStamp);
+                    tail = head;
+                    return;
+                }
+
+                // CASE B: There are values already in the list
+                tail->Next = new Node(Insertion, TimeStamp);
+                tail->Next->Prev = tail;
+                tail = tail->Next;
+            }
+
+            /// @brief Add a scalar to the stack
+            /// @param data the scalar to insert
+            /// @param timestamp the time the vector was inserted
+            void Insert(float Insertion, std::chrono::milliseconds TimeStamp){
+                // CASE A: There are no values in the list
+                if(!head){
+                    head = new Node(Insertion, TimeStamp);
+                    tail = head;
+                    return;
+                }
+
+                // CASE B: There are values already in the list
+                tail->Next = new Node(Insertion, TimeStamp);
+                tail->Next->Prev = tail;
+                tail = tail->Next;
+            }
+
+            /// @brief Shows the last node without popping it
+            /// @return the last node
+            inline Node Peek(){
+                return *tail;
+            }
+
+            /// @brief The deadline stack allows us to discard old values based on a preset deadline,
+            /// This ensures that only recent data is passed on for further processing
+            Node* Pop() {
+                Node* result = tail;
+
+                if (!tail) {
+                    std::cout << "Dead end" << std::endl << std::endl << std::endl;
+                    throw 0;
+                }
+
+                // Check if the current tail node is outdated
+                if (std::abs(static_cast<int>(tail->TimeStamp.count()) - 
+                            static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                                std::chrono::system_clock::now().time_since_epoch()).count())) 
+                    < int(DeadlineSeconds * 1000)) {
+
+                    tail = tail->Prev;
+
+                    return result; 
+                }
+
+                throw 0;
+            }
+
     };
 };
