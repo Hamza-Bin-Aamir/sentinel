@@ -3,13 +3,13 @@ using namespace std;
 
 struct finMount
 {
-    bool left; // 1 for left mounted, 0 for right
+    bool left;  // 1 for left mounted, 0 for right
     bool front; // 1 for front mounted, 0 for back
 };
 
 class gridfin
 {
-    public:
+public:
     string name;
     string type;
     float angle;
@@ -23,7 +23,6 @@ class gridfin
         mount.left = l;
         mount.front = f;
     }
-
 };
 
 void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
@@ -34,11 +33,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.front == 1)
             {
-                g[i].angle = ((pitch*60)/360);
+                g[i].angle = ((pitch * 60) / 360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = -1*((pitch*60)/360);
+                g[i].angle = -1 * ((pitch * 60) / 360);
             }
         }
     }
@@ -49,11 +48,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.front == 1)
             {
-                g[i].angle = -1*((pitch*60)/360);
+                g[i].angle = -1 * ((pitch * 60) / 360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = ((pitch*60)/360);
+                g[i].angle = ((pitch * 60) / 360);
             }
         }
     }
@@ -64,11 +63,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = ((yaw*60)/360);
+                g[i].angle = ((yaw * 60) / 360);
             }
             if (g[i].mount.left == 0)
             {
-                g[i].angle = -1*((yaw*60)/360);
+                g[i].angle = -1 * ((yaw * 60) / 360);
             }
         }
     }
@@ -79,11 +78,11 @@ void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = -1*((yaw*60)/360);
+                g[i].angle = -1 * ((yaw * 60) / 360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = ((yaw*60)/360);
+                g[i].angle = ((yaw * 60) / 360);
             }
         }
     }
@@ -97,11 +96,11 @@ void gyaw(gridfin g[], int gnum, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = ((yaw*60)/360);
+                g[i].angle = ((yaw * 60) / 360);
             }
             if (g[i].mount.left == 0)
             {
-                g[i].angle = -1*((yaw*60)/360);
+                g[i].angle = -1 * ((yaw * 60) / 360);
             }
         }
     }
@@ -112,12 +111,20 @@ void gyaw(gridfin g[], int gnum, float yaw)
         {
             if (g[i].mount.left == 1)
             {
-                g[i].angle = -1*((yaw*60)/360);
+                g[i].angle = -1 * ((yaw * 60) / 360);
             }
             if (g[i].mount.front == 0)
             {
-                g[i].angle = ((yaw*60)/360);
+                g[i].angle = ((yaw * 60) / 360);
             }
         }
+    }
+}
+
+void airbrake(gridfin g[], int gnum)
+{
+    for (int i = 0; i < gnum; i++)
+    {
+        g[i].angle = 60;
     }
 }
