@@ -268,6 +268,73 @@ namespace RocketSensors{
 
                 throw 0;
             }
+    };
 
+
+    /// @brief Primitive Data-Type representing a "virtual" sensor
+    class Sensor{
+    private:
+        DeadlineStack Raw; // We use composition to enhance the functionality of this primitive
+        DeadlineStack Stable; 
+
+    public:
+        Sensor(float DeadlineSeconds){
+            Raw = DeadlineStack(DeadlineSeconds);
+            Stable = DeadlineStack(DeadlineSeconds);
+        }
+
+        Sensor() : Raw(), Stable() {};
+
+        inline void Insert(RocketPhysics::Vector3D Insertion, std::chrono::milliseconds TimeStamp){
+            Raw.Insert(Insertion, TimeStamp);
+        }
+
+        inline void Insert(RocketPhysics::Vector2D Insertion, std::chrono::milliseconds TimeStamp){
+            Raw.Insert(Insertion, TimeStamp);
+        }
+
+        inline void Insert(float Insertion, std::chrono::milliseconds TimeStamp){
+            Raw.Insert(Insertion, TimeStamp);
+        }
+
+        void Update(){
+            try{
+                Node* MedianS; Node* Median2D; Node* Median3D;
+                float TotalS = 0.0f; RocketPhysics::Vector2D Total2D(0,0,false,'X'); RocketPhysics::Vector3D Total3D(0,0,0,'X');
+                int FloatCount = 0, Vec2DCount = 0, Vec3DCount = 0;
+                for(; FloatCount >= 2 || Vec2DCount >= 2 || Vec3DCount >= 2;){
+                    Node* Buffer = Raw.Pop();
+
+                    if(Buffer->SelectedType == Scalar){
+                        TotalS += Buffer->Data.Scalar;
+                        if(FloatCount == 1) {MedianS = Buffer;}
+                        FloatCount++;  
+                    }
+                    else if(Buffer->SelectedType == Vect_2D){
+                        Total2D = Total2D + Buffer->Data.Vect2D;
+                        if(Vec2DCount == 1) {Median2D = Buffer;}
+                        Vec2DCount++;
+                    }
+                    else{
+                        Total3D = Total3D + Buffer->Data.Vect3D;
+                        if(Vec3DCount == 1) {Median3D = Buffer;}
+                        Vec3DCount++;
+                    }
+                }
+
+                if(FloatCount >= 2){
+                    Stable.Insert(TotalS/3, MedianS->TimeStamp);
+                }
+                else if(Vec2DCount >= 2){
+                    Stable.Insert(Total2D/3, Median2D->TimeStamp);
+                }
+                else{
+                    Stable.Insert(Total3D/3, Median3D->TimeStamp);
+                }
+            }
+            catch(...){
+                return;
+            }
+        }
     };
 };
