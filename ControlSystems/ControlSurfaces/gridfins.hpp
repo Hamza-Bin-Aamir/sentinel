@@ -1,4 +1,6 @@
+#include <iostream>
 #include <string>
+#include <list>
 using namespace std;
 
 struct finMount
@@ -10,18 +12,61 @@ struct finMount
 class gridfin
 {
 public:
-    string name;
+    int num;
     string type;
     float angle;
     finMount mount;
 
-    gridfin(string n, string t, bool dir, bool l, bool f)
+    gridfin(int n, string t, bool l, bool f)
     {
-        name = n;
+        num = n;
         type = t;
         angle = 0.0;
         mount.left = l;
         mount.front = f;
+    }
+};
+
+class gridSystem // Graph to connect the grid fins together and control them
+{
+public:
+    int numV; // Number of Grid Fins
+    list<gridfin> *adj;
+
+    gridSystem(int V)
+    {
+        this->numV = V;
+        adj = new list<gridfin>[V];
+    }
+
+    void addNew()
+    {
+        int n;
+        string t;
+        bool l, f;
+
+        cout << "Please set the grid fin number: ";
+        cin >> n;
+        cout << "Please enter the type of grid fin mesh: ";
+        cin >> t;
+        cout << "Please enter 1 if fin is left mounted, 0 if right mounted: ";
+        cin >> l;
+        cout << "Please enter 1 if fin is front mounted, 0 if back mounted: ";
+        cin >> f;
+
+        gridfin gnew(n, t, l, f);
+
+        for (int i = 0; i < numV; i++)
+        {
+            for (auto temp : adj[i])
+            {
+                if ((temp.mount.left == gnew.mount.left) || (temp.mount.front == gnew.mount.front))
+                {
+                    adj[i].push_back(gnew);
+                    adj[gnew.num].push_back(temp); // Add bidirectional connection
+                }
+            }
+        }
     }
 };
 
