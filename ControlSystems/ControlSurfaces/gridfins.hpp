@@ -68,6 +68,26 @@ public:
             }
         }
     }
+
+    void printGraphRecursive(int v)
+    {
+        cout << "-> " << v;
+
+        for (auto x : adj[v])
+        {
+            printGraphRecursive(x.num);
+        }
+    }
+
+    void printGraph()
+    {
+        for (int v = 0; v < numV; ++v)
+        {
+            cout << "Adjacency list of vertex " << v << ":\n head ";
+            printGraphRecursive(v);
+            cout << endl;
+        }
+    }
 };
 
 void gkeepvertical(gridfin g[], int gnum, float pitch, float yaw)
