@@ -3,7 +3,6 @@
 
 These include:
 * Grid Fins
-* Rear Fins
 * Thrust Vectoring
 
 More control surfaces and methods to be added in future versions
