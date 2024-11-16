@@ -41,19 +41,6 @@ void ShowFastList(RocketSensors::FastList the_list, string Name){
     }
 }
 
-void TransferToDeadlineStack(RocketSensors::FastList& the_list, RocketSensors::DeadlineStack& the_stack){
-    RocketSensors::Node NodeBuffer = the_list.ReadSequential();
-    if(NodeBuffer.SelectedType == RocketSensors::Scalar){
-        the_stack.Insert(NodeBuffer.Data.Scalar, NodeBuffer.TimeStamp);
-    }
-    else if(NodeBuffer.SelectedType == RocketSensors::Vect_2D){
-        the_stack.Insert(NodeBuffer.Data.Vect2D, NodeBuffer.TimeStamp);
-    }
-    else {
-        the_stack.Insert(NodeBuffer.Data.Vect3D, NodeBuffer.TimeStamp);
-    }
-}
-
 void ShowDataWithinDeadline(RocketSensors::DeadlineStack the_stack, string Name){
     cout << endl << Name << " (latest ten, if within deadline):";
     for(int i=0; i<10; i++){
@@ -211,12 +198,12 @@ int main(){
             }
         }
         
-        TransferToDeadlineStack(pitch, pitchStack);
-        TransferToDeadlineStack(roll, rollStack);
-        TransferToDeadlineStack(yaw, yawStack);
-        TransferToDeadlineStack(velocity, velocityStack);
-        TransferToDeadlineStack(acceleration, accelerationStack);
-        TransferToDeadlineStack(height, heightStack);
+        RocketSensors::TransferToDeadlineStack(pitch, pitchStack);
+        RocketSensors::TransferToDeadlineStack(roll, rollStack);
+        RocketSensors::TransferToDeadlineStack(yaw, yawStack);
+        RocketSensors::TransferToDeadlineStack(velocity, velocityStack);
+        RocketSensors::TransferToDeadlineStack(acceleration, accelerationStack);
+        RocketSensors::TransferToDeadlineStack(height, heightStack);
     }
     
     pitch.ResetRead(); ShowFastList(pitch, "Pitch");
@@ -232,6 +219,24 @@ int main(){
     ShowDataWithinDeadline(velocityStack, "Velocity");
     ShowDataWithinDeadline(accelerationStack, "Acceleration");
     ShowDataWithinDeadline(heightStack, "Height");
+
+    RocketSensors::BinarySearchTree Sensors;
+    Sensors.create('P'); // Pitch
+    Sensors.create('R'); // Roll
+    Sensors.create('Y'); // Yaw
+    Sensors.create('V'); // Velocity
+    Sensors.create('A'); // Acceleration
+    Sensors.create('H'); // Height
+
+    cout << endl << "Listing sensors in the tree: ";
+    Sensors.Update();
+    RocketSensors::Sensor* Root = Sensors.GetRoot();
+    RocketSensors::Sensor* Next = Root;
+    while(Next){
+        cout << Next->getType() << Next->getID() << " ";
+        Next = Sensors.Traverse(Next);
+    }
+    cout << endl;
 
     cout << endl;   return 0;
 }
