@@ -274,16 +274,22 @@ namespace RocketSensors{
     /// @brief Primitive Data-Type representing a "virtual" sensor
     class Sensor{
     private:
+        static int IterationCount;
+        int ID;
         DeadlineStack Raw; // We use composition to enhance the functionality of this primitive
         DeadlineStack Stable; 
 
     public:
         Sensor(float DeadlineSeconds){
+            ID = IterationCount++;
             Raw = DeadlineStack(DeadlineSeconds);
             Stable = DeadlineStack(DeadlineSeconds);
         }
 
-        Sensor() : Raw(), Stable() {};
+        Sensor() : Raw(), Stable(), ID(IterationCount++) {};
+
+        Sensor* Right;
+        Sensor* Left;
 
         inline void Insert(RocketPhysics::Vector3D Insertion, std::chrono::milliseconds TimeStamp){
             Raw.Insert(Insertion, TimeStamp);
@@ -297,6 +303,7 @@ namespace RocketSensors{
             Raw.Insert(Insertion, TimeStamp);
         }
 
+        /// @brief Call this regularly if you want to use the stable values of the sensor
         void Update(){
             try{
                 Node* MedianS; Node* Median2D; Node* Median3D;
@@ -335,6 +342,83 @@ namespace RocketSensors{
             catch(...){
                 return;
             }
+        }
+
+        int getID() const { return ID; }
+    };
+
+    int Sensor::IterationCount = 0;
+
+    // Organising our sensors
+    class BinarySearchTree{
+        private:
+            Sensor* Root;
+
+        public:
+        BinarySearchTree(): Root(nullptr) {};
+
+        Sensor* create(){
+            if(!Root){
+                Root = new Sensor();
+                return Root;
+            }
+
+            Sensor* Insertion = new Sensor();
+            Sensor* Position = Root;
+
+            while(Position->Left || Position->Right){
+                if(Position->Left){
+                    if(Position->Left->getID() > Insertion->getID()){
+                        Position = Position->Left;
+                    }
+                }
+                else if(Position->Right){
+                    if(Position->Right->getID() < Insertion->getID()){
+                        Position = Position->Right;
+                    }
+                }
+            }
+
+            if(Position->getID() < Insertion->getID()){
+                Position->Right = Insertion;
+            }
+            else{
+                Position->Left = Insertion;
+            }
+
+            return Insertion;
+        }
+
+        Sensor* create(float DeadlineSeconds){
+            if(!Root){
+                Root = new Sensor(DeadlineSeconds);
+                return Root;
+            }
+
+            Sensor* Insertion = new Sensor(DeadlineSeconds);
+            Sensor* Position = Root;
+
+            while(Position->Left || Position->Right){
+                if(Position->Left){
+                    if(Position->Left->getID() > Insertion->getID()){
+                        Position = Position->Left;
+                    }
+                }
+                else if(Position->Right){
+                    if(Position->Right->getID() < Insertion->getID()){
+                        Position = Position->Right;
+                    }
+                }
+            }
+
+            if(Position->getID() < Insertion->getID()){
+                Position->Right = Insertion;
+            }
+            else{
+                Position->Left = Insertion;
+            }
+
+            return Insertion;
         }
     };
 };
