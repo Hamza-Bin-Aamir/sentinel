@@ -280,16 +280,25 @@ namespace RocketSensors{
         DeadlineStack Stable; 
 
     public:
+        Sensor* Right;
+        Sensor* Left;
+        Sensor* Parent;
+        char Type;
+
         Sensor(float DeadlineSeconds){
             ID = IterationCount++;
             Raw = DeadlineStack(DeadlineSeconds);
             Stable = DeadlineStack(DeadlineSeconds);
+            Right = nullptr;
+            Left = nullptr;
+            Parent = nullptr;
+            Type = 'X';
         }
 
-        Sensor() : Raw(), Stable(), ID(IterationCount++) {};
+        Sensor(char Type): Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type(Type) {};
 
-        Sensor* Right;
-        Sensor* Left;
+        Sensor() : Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type('X') {};
+
 
         inline void Insert(RocketPhysics::Vector3D Insertion, std::chrono::milliseconds TimeStamp){
             Raw.Insert(Insertion, TimeStamp);
@@ -335,7 +344,7 @@ namespace RocketSensors{
                 else if(Vec2DCount >= 2){
                     Stable.Insert(Total2D/3, Median2D->TimeStamp);
                 }
-                else{
+                else if(Vec3DCount >= 2){
                     Stable.Insert(Total3D/3, Median3D->TimeStamp);
                 }
             }
@@ -345,6 +354,7 @@ namespace RocketSensors{
         }
 
         int getID() const { return ID; }
+        char getType() const {return Type; }
     };
 
     int Sensor::IterationCount = 0;
@@ -352,18 +362,60 @@ namespace RocketSensors{
     // Organising our sensors
     class BinarySearchTree{
         private:
-            Sensor* Root;
+        Sensor* Root;
+        /// @brief Performs an in-order traversal to update the stable estimates of all the sensors 
+        /// @param Position What node we are currently on (used in recursion)
+        void Update(Sensor* Position){
+            if(!Position) {return;}
+            Update(Position->Left);
+            Position->Update();
+            Update(Position->Right);
+        }
 
+        Sensor* Traverse(Sensor* CurrPosition, Sensor* TargetPosition) {
+            if (CurrPosition == nullptr) {
+                return nullptr;
+            }
+
+            // Visit the current node
+            if (CurrPosition == TargetPosition) {
+                // If the target node has a right child, return the right child
+                if (CurrPosition->Right) {
+                    return CurrPosition->Right;
+                }
+
+                // If the target node has no right child, find the next in-order successor
+                Sensor* successor = CurrPosition;
+                while (successor->Parent && successor == successor->Parent->Right) {
+                    successor = successor->Parent;
+                }
+
+                if (successor->Parent) {
+                    return successor->Parent; 
+                } else {
+                    return nullptr; 
+                }
+            }
+
+            // Recursively traverse the left and right subtrees
+            Sensor* nextSensor = Traverse(CurrPosition->Left, TargetPosition);
+            if (nextSensor != nullptr) {
+                return nextSensor;
+            }
+
+            return Traverse(CurrPosition->Right, TargetPosition);
+        }
         public:
+        
         BinarySearchTree(): Root(nullptr) {};
 
-        Sensor* create(){
+        Sensor* create(char Type){
             if(!Root){
-                Root = new Sensor();
+                Root = new Sensor(Type);
                 return Root;
             }
 
-            Sensor* Insertion = new Sensor();
+            Sensor* Insertion = new Sensor(Type);
             Sensor* Position = Root;
 
             while(Position->Left || Position->Right){
@@ -411,6 +463,8 @@ namespace RocketSensors{
                 }
             }
 
+            Insertion->Parent = Position;
+
             if(Position->getID() < Insertion->getID()){
                 Position->Right = Insertion;
             }
@@ -420,5 +474,39 @@ namespace RocketSensors{
 
             return Insertion;
         }
+
+        /// @brief Updates every available sensor in the tree,
+        /// Uses in-order traversal
+        void Update(){
+            Update(Root); // Starts the traversal at root
+        }
+
+        
+        /// @brief Gets the next sensor in order (uses pre-order traversal)
+        /// @param TargetPosition 
+        /// @return Sensor pointer for the latest
+        Sensor* Traverse(Sensor* TargetPosition){
+            return Traverse(Root, TargetPosition);
+        }
+
+        Sensor* GetRoot()
+        { return Root;}
     };
+
+
+
+    void TransferToDeadlineStack(RocketSensors::FastList& the_list, RocketSensors::DeadlineStack& the_stack){
+        RocketSensors::Node NodeBuffer = the_list.ReadSequential();
+        if(NodeBuffer.SelectedType == RocketSensors::Scalar){
+            the_stack.Insert(NodeBuffer.Data.Scalar, NodeBuffer.TimeStamp);
+        }
+        else if(NodeBuffer.SelectedType == RocketSensors::Vect_2D){
+            the_stack.Insert(NodeBuffer.Data.Vect2D, NodeBuffer.TimeStamp);
+        }
+        else {
+            the_stack.Insert(NodeBuffer.Data.Vect3D, NodeBuffer.TimeStamp);
+        }
+    }
+
+
 };
