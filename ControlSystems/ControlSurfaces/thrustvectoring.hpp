@@ -9,16 +9,18 @@ class gimbal
     float axis1, axis2;
     float gimbal_constant;
 
-    gimbal(int gc)
+    gimbal(int gc, float y_offset, float p_offset)
     {
-        axis1 = axis2 = 0.0;
+        //initialising and centering gimbal
+        axis1 = -1*y_offset;
+        axis2 = -1*p_offset; 
         gimbal_constant = gc;
     }
 
     void yaw(float yaw)
     {
         axis1 = gimbal_constant*yaw;
-        cout << "Yawing to " << yaw << " degrees."<< endl;
+        cout << "Yawing to " << yaw << " degrees"<< endl;
 
     }
 

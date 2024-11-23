@@ -92,6 +92,7 @@ public:
 
 void gkeepvertical(gridSystem &graph, float pitch, float yaw)
 {
+    cout << "Control Loop engaged. Rocket trajectory corrected." << endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
@@ -147,6 +148,8 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
 
 void gyaw(gridSystem &graph, float yaw)
 {
+
+    cout << "Yawing to " << yaw << " degrees"<< endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
@@ -179,6 +182,7 @@ void gyaw(gridSystem &graph, float yaw)
 
 void gpitch(gridSystem &graph, float pitch)
 {
+    cout << "Pitching to " << pitch << " degrees"<< endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
@@ -211,6 +215,7 @@ void gpitch(gridSystem &graph, float pitch)
 
 void airbrake(gridSystem &graph)
 {
+    cout << "Airbrake System engaged. Rocket velocity reduced" << endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
