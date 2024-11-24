@@ -251,7 +251,6 @@ namespace RocketSensors{
                 Node* result = tail;
 
                 if (!tail) {
-                    std::cout << "Dead end" << std::endl << std::endl << std::endl;
                     throw 0;
                 }
 
@@ -276,10 +275,10 @@ namespace RocketSensors{
     private:
         static int IterationCount;
         int ID;
-        DeadlineStack Raw; // We use composition to enhance the functionality of this primitive
-        DeadlineStack Stable; 
 
     public:
+        DeadlineStack Raw; // We use composition to enhance the functionality of this primitive
+        DeadlineStack Stable; 
         Sensor* Right;
         Sensor* Left;
         Sensor* Parent;

@@ -62,8 +62,6 @@ void ShowDataWithinDeadline(RocketSensors::DeadlineStack the_stack, string Name)
     }
 }
 
-enum LogDTypes{Pitch=0, Roll, Yaw, Velocity, Acceleration, Height, TimeStamp};
-
 int main(){
     // Declare example data 
     RocketPhysics::Vector2D ExampleA(22.3f, 31.4f, false, 'F');
@@ -149,77 +147,9 @@ int main(){
         return 1;
     }
     string line, token, bufferA, bufferB;
-    RocketSensors::FastList pitch, roll, yaw, velocity, acceleration, height;
-    RocketSensors::DeadlineStack pitchStack(0.04), rollStack(0.04), yawStack(0.04), velocityStack(0.04), accelerationStack(0.04), heightStack(0.04);
-    LogDTypes ScanFor;
-
-    // Data loading loop
-    while (getline(infile, line)){
-        stringstream data(line);
-
-        while(data >> token){
-            if(token == "Pitch"){ ScanFor = Pitch; continue; }
-            if(token == "Roll"){ ScanFor = Roll; continue; }
-            if(token == "Yaw"){ ScanFor = Yaw; continue; }
-            if(token == "Velocity"){ ScanFor = Velocity; continue; }
-            if(token == "Acceleration"){ ScanFor = Acceleration; continue; }
-            if(token == "Height"){ ScanFor = Height; continue;}
-            if(token == "TimeStamp") { ScanFor = TimeStamp; continue; }
-
-            switch (ScanFor){
-                case Pitch:
-                    pitch.Insert(stof(token));
-                break;
-
-                case Roll:
-                    roll.Insert(stof(token));
-                break;
-
-                case Yaw:
-                    yaw.Insert(stof(token));
-                break;
-
-                case Velocity:
-                    data >> bufferA >> bufferB;
-                    velocity.Insert(*(new RocketPhysics::Vector3D(stof(token), stof(bufferA), stof(bufferB), 'V')));
-                break;
-
-                case Acceleration:
-                    data >> bufferA >> bufferB;
-                    acceleration.Insert(*(new RocketPhysics::Vector3D(stof(token), stof(bufferA), stof(bufferB), 'A')));
-                break;
-
-                case Height:
-                    height.Insert(stof(token));
-                break;
-
-                default:
-                break;
-            }
-        }
-        
-        RocketSensors::TransferToDeadlineStack(pitch, pitchStack);
-        RocketSensors::TransferToDeadlineStack(roll, rollStack);
-        RocketSensors::TransferToDeadlineStack(yaw, yawStack);
-        RocketSensors::TransferToDeadlineStack(velocity, velocityStack);
-        RocketSensors::TransferToDeadlineStack(acceleration, accelerationStack);
-        RocketSensors::TransferToDeadlineStack(height, heightStack);
-    }
+    RocketSensors::FastList Information;
+    char ScanFor;
     
-    pitch.ResetRead(); ShowFastList(pitch, "Pitch");
-    roll.ResetRead(); ShowFastList(roll, "Roll");
-    yaw.ResetRead(); ShowFastList(yaw, "Yaw");
-    velocity.ResetRead(); ShowFastList(velocity, "Velocity");
-    acceleration.ResetRead(); ShowFastList(acceleration, "Acceleration");
-    height.ResetRead(); ShowFastList(height, "Altitude");
-
-    ShowDataWithinDeadline(pitchStack, "Pitch");
-    ShowDataWithinDeadline(rollStack, "Roll");
-    ShowDataWithinDeadline(yawStack, "Yaw");
-    ShowDataWithinDeadline(velocityStack, "Velocity");
-    ShowDataWithinDeadline(accelerationStack, "Acceleration");
-    ShowDataWithinDeadline(heightStack, "Height");
-
     RocketSensors::BinarySearchTree Sensors;
     Sensors.create('P'); // Pitch
     Sensors.create('R'); // Roll
@@ -228,12 +158,43 @@ int main(){
     Sensors.create('A'); // Acceleration
     Sensors.create('H'); // Height
 
-    cout << endl << "Listing sensors in the tree: ";
+    // Data loading loop
+    while (getline(infile, line)){
+        stringstream data(line);
+
+        while(data >> token){
+            if(token == "Pitch"){ ScanFor = 'P'; continue; }
+            if(token == "Roll"){ ScanFor = 'R'; continue; }
+            if(token == "Yaw"){ ScanFor = 'Y'; continue; }
+            if(token == "Velocity"){ ScanFor = 'V'; continue; }
+            if(token == "Acceleration"){ ScanFor = 'A'; continue; }
+            if(token == "Height"){ ScanFor = 'H'; continue;}
+            if(token == "TimeStamp") { ScanFor = 'T'; continue; }
+
+            if(ScanFor != 'T'){
+                Information.Insert(stof(token));
+
+                RocketSensors::Sensor* Root = Sensors.GetRoot();
+                RocketSensors::Sensor* Next = Root;
+                while(Next){
+                    // cout << Next->getType() << ScanFor << endl;
+                    if(Next->getType() == ScanFor){RocketSensors::TransferToDeadlineStack(Information, Next->Raw); break;}
+                    Next = Sensors.Traverse(Next);
+                    Sensors.Update();
+                }
+                cout << endl;
+            }
+        }
+        
+    }
+    
+    Information.ResetRead(); ShowFastList(Information, "List Head");
+
     Sensors.Update();
     RocketSensors::Sensor* Root = Sensors.GetRoot();
     RocketSensors::Sensor* Next = Root;
     while(Next){
-        cout << Next->getType() << Next->getID() << " ";
+        ShowDataWithinDeadline(Next->Raw, string(1, Next->getType()));
         Next = Sensors.Traverse(Next);
     }
     cout << endl;
