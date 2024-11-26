@@ -1,4 +1,4 @@
-# Welcome to CS221 Project SENTINEL
+# Welcome to Project SENTINEL
 ## About
 Project SENTINEL is intended to be a "generalist"  hobby rocket logging system that is capable of adapting to rockets of all impulse categories (from tiny water rockets to spaceshots!)
 
