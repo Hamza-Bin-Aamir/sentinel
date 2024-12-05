@@ -28,5 +28,48 @@ class Security{
         else
             return false;
     }
-    
-}
+    bool writeToFile(const string& filePath, const string& content, 
+                    const string& inputPassword) {
+        if (!checkPassword(inputPassword)) {
+            return false;  // Wrong password
+        }
+        
+        try {
+            ofstream file(filePath);
+            if (!file) {
+               throw runtime_error("Unable to open file for writing: " + filepath );
+            }
+            
+            // Write content to file
+            file << content;
+            return true;
+        } catch (...) {
+            return false;  // Any error during writing
+        }
+    }
+    string readFromFile(const string& filePath, const string& inputPassword) {
+        if (!checkPassword(inputPassword)) {
+            return "Wrong Password";  
+        }
+        
+        try {
+            ifstream file(filePath);
+            if (!file) {
+                throw runtime_error("Unable to open file for reading: " + filePath);
+            }
+            
+            string content;
+            string line;
+            while (getline(file, line)) {
+                content += line + "\n";
+            }
+            
+            return content;
+        } catch (...) {
+           return "Unknown error occurred during file reading.";  // Any error during reading
+        }
+    }
+
+};
+
+#endif
