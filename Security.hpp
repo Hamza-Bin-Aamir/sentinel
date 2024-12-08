@@ -10,6 +10,7 @@ class Security{
     string password;
 
     public:
+    //constructor with default password
     SecurityUtils(const string& initialPassword = "admin") {
         password = initialPassword;
     }
@@ -22,7 +23,7 @@ class Security{
         password = newPassword;
     }
 
-     bool checkPassword(const string& inputPassword) {
+    bool checkPassword(const string& inputPassword) {
         if(password == inputPassword)
             return true;
         else
@@ -44,7 +45,7 @@ class Security{
             file << content;
             return true;
         } catch (...) {
-            return false;  // Any error during writing
+           return "Unknown error occurred during file reading.";  // Any error during reading
         }
     }
     string readFromFile(const string& filePath, const string& inputPassword) {
@@ -69,7 +70,11 @@ class Security{
            return "Unknown error occurred during file reading.";  // Any error during reading
         }
     }
-
+    
+    // Check if file can be accessed
+    bool canAccessFile(const string& inputPassword) {
+        return checkPassword(inputPassword);
+    }
 };
 
 #endif
