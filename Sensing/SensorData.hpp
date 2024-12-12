@@ -282,6 +282,7 @@ namespace RocketSensors{
         Sensor* Right;
         Sensor* Left;
         Sensor* Parent;
+        std::chrono::milliseconds LastStableUpdate;
         char Type;
 
         Sensor(float DeadlineSeconds){
@@ -294,9 +295,9 @@ namespace RocketSensors{
             Type = 'X';
         }
 
-        Sensor(char Type): Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type(Type) {};
+        Sensor(char Type): Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type(Type), LastStableUpdate(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())) {};
 
-        Sensor() : Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type('X') {};
+        Sensor() : Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type('X'), LastStableUpdate(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())) {};
 
 
         inline void Insert(RocketPhysics::Vector3D Insertion, std::chrono::milliseconds TimeStamp){
