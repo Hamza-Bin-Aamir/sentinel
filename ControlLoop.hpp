@@ -70,5 +70,25 @@ public:
         return data;
     }
 
+    // Get the front element (without removing it)
+    string frontElement() const
+    {
+        if (isEmpty())
+        {
+            throw std::runtime_error("Queue is empty");
+        }
+
+        return front->data;
+    }
 
 };
+
+
+void controller()
+{
+    string comm;
+    Queue commands;
+    cout << "Enter Control Command: " << endl;
+    getline(cin, comm);
+    commands.enqueue(comm);
+}
