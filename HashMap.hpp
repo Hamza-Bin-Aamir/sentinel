@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "ActualLogger.hpp"
+using namespace std;
 
 class HashMap{
     private:
