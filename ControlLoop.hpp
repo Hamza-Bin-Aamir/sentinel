@@ -1,4 +1,5 @@
 #include <iostream>
+#include <unistd.h>
 using namespace std;
 #include "./Control/gridfins.hpp"
 
@@ -88,7 +89,16 @@ void controller()
 {
     string comm;
     Queue commands;
+    for (int i = 0; i < 20; i++){
     cout << "Enter Control Command: " << endl;
     getline(cin, comm);
     commands.enqueue(comm);
+    }
+
+    for (int i = 0; i < 20; i++)
+    {
+        comm = commands.dequeue();
+        cout << comm << endl;
+        sleep(200); // signifies execution of function. More functionality will be added after merging with other modules
+    }
 }
