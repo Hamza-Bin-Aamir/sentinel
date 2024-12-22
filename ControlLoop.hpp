@@ -81,18 +81,17 @@ public:
 
         return front->data;
     }
-
 };
 
-
-void controller()
+void controller(float pitch, float yaw, float roll)
 {
     string comm;
     Queue commands;
-    for (int i = 0; i < 20; i++){
-    cout << "Enter Control Command: " << endl;
-    getline(cin, comm);
-    commands.enqueue(comm);
+    for (int i = 0; i < 20; i++)
+    {
+        cout << "Enter Control Command: " << endl;
+        getline(cin, comm);
+        commands.enqueue(comm);
     }
 
     for (int i = 0; i < 20; i++)
