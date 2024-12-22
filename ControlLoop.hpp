@@ -2,6 +2,20 @@
 #include <unistd.h>
 using namespace std;
 #include "./Control/gridfins.hpp"
+#include "./Recovery/parachute.hpp"
+
+void bubbleSort(parachute* arr, int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j].DeploySequence > arr[j + 1].DeploySequence) {
+                // Swap arr[j] and arr[j+1]
+                int temp = arr[j].DeploySequence;
+                arr[j].DeploySequence = arr[j + 1].DeploySequence;
+                arr[j +1].DeploySequence = temp;
+            }
+        }
+    }
+}
 
 struct Node
 {
@@ -15,14 +29,14 @@ struct Node
     }
 };
 
-class Queue
+class ControlQueue
 {
 private:
     Node *front;
     Node *rear;
 
 public:
-    Queue()
+    ControlQueue()
     {
         front = nullptr;
         rear = nullptr;
@@ -82,22 +96,3 @@ public:
         return front->data;
     }
 };
-
-void controller(float pitch, float yaw, float roll)
-{
-    string comm;
-    Queue commands;
-    for (int i = 0; i < 20; i++)
-    {
-        cout << "Enter Control Command: " << endl;
-        getline(cin, comm);
-        commands.enqueue(comm);
-    }
-
-    for (int i = 0; i < 20; i++)
-    {
-        comm = commands.dequeue();
-        cout << comm << endl;
-        sleep(200); // signifies execution of function. More functionality will be added after merging with other modules
-    }
-}

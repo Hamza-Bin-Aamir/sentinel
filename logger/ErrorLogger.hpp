@@ -60,7 +60,7 @@ public:
 
         try {
             ofstream logFile(logFilePath, ios::app);
-            if (!file) {
+            if (!logFile) {
                 throw runtime_error("Unable to open file: " + logFilePath);
             }
 
@@ -69,7 +69,7 @@ public:
                    << message << endl;
         } catch (...) {
                 // If logging fails, not much we can do
-             return "Unknown error occurred.";  
+             return;  
         }
     }
 

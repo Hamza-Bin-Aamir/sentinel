@@ -1,7 +1,17 @@
 #include <iostream>
 #include <string>
 #include <list>
+#include <cstdlib> // using this for system
+#include <thread> // using this for sleep
+#include <chrono> // for timing
 using namespace std;
+
+/// @brief Sleeps for a certain amount of milliseconds
+/// Credits to HighCommander4 on StackOverflow: https://stackoverflow.com/questions/4184468/sleep-for-milliseconds 
+/// @param milliseconds time to sleep for in milliseconds
+void sleep_for(unsigned int milliseconds) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
 
 struct finMount
 {
@@ -13,14 +23,12 @@ class gridfin
 {
 public:
     int num;
-    string type;
     float angle;
     finMount mount;
 
-    gridfin(int n, string t, bool l, bool f)
+    gridfin(int n, bool l, bool f)
     {
         num = n;
-        type = t;
         angle = 0.0;
         mount.left = l;
         mount.front = f;
@@ -47,14 +55,12 @@ public:
 
         cout << "Please set the grid fin number: ";
         cin >> n;
-        cout << "Please enter the type of grid fin mesh: ";
-        cin >> t;
         cout << "Please enter 1 if fin is left mounted, 0 if right mounted: ";
         cin >> l;
         cout << "Please enter 1 if fin is front mounted, 0 if back mounted: ";
         cin >> f;
 
-        gridfin gnew(n, t, l, f);
+        gridfin gnew(n, l, f);
 
         for (int i = 0; i < numV; i++)
         {
@@ -92,14 +98,18 @@ public:
 
 void gkeepvertical(gridSystem &graph, float pitch, float yaw)
 {
-    cout << "Control Loop engaged. Rocket trajectory corrected." << endl;
+    cout << "Control Loop engaged. " << endl
+         << "Current Yaw: " << yaw << " degrees, Pitch: " << pitch << " degrees." << endl;
+    sleep_for(2000);
+    cout << "Rocket trajectory correcting..." << endl;
+
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
         {
             if (pitch > 0)
             { // Nose Up
-                if (g.mount.front == 1)
+                if (g.mount.front == true)
                 {
                     g.angle = ((pitch * 60) / 360);
                 }
@@ -110,7 +120,7 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
             }
             else if (pitch < 0)
             { // Nose Down
-                if (g.mount.front == 1)
+                if (g.mount.front == true)
                 {
                     g.angle = -1 * ((pitch * 60) / 360);
                 }
@@ -122,7 +132,7 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
 
             if (yaw > 0)
             { // Veer Right
-                if (g.mount.left == 1)
+                if (g.mount.left == true)
                 {
                     g.angle += ((yaw * 60) / 360);
                 }
@@ -133,7 +143,7 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
             }
             else if (yaw < 0)
             { // Veer Left
-                if (g.mount.left == 1)
+                if (g.mount.left == true)
                 {
                     g.angle -= ((yaw * 60) / 360);
                 }
@@ -142,6 +152,7 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
                     g.angle += ((yaw * 60) / 360);
                 }
             }
+            
         }
     }
 }
@@ -149,7 +160,7 @@ void gkeepvertical(gridSystem &graph, float pitch, float yaw)
 void gyaw(gridSystem &graph, float yaw)
 {
 
-    cout << "Yawing to " << yaw << " degrees"<< endl;
+    cout << "Yawing to " << yaw << " degrees" << endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])
@@ -182,7 +193,7 @@ void gyaw(gridSystem &graph, float yaw)
 
 void gpitch(gridSystem &graph, float pitch)
 {
-    cout << "Pitching to " << pitch << " degrees"<< endl;
+    cout << "Pitching to " << pitch << " degrees" << endl;
     for (int i = 0; i < graph.numV; i++)
     {
         for (auto &g : graph.adj[i])

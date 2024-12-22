@@ -12,7 +12,7 @@ class Security{
 
     public:
     //constructor with default password
-    SecurityUtils(const string& initialPassword = "admin") {
+    Security(const string& initialPassword = "admin") {
         password = initialPassword;
     }
     
@@ -39,7 +39,7 @@ class Security{
         try {
             ofstream file(filePath);
             if (!file) {
-               throw runtime_error("Unable to open file for writing: " + filepath );
+               throw runtime_error("Unable to open file for writing");
             }
             
             // Write content to file

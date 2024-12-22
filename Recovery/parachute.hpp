@@ -25,6 +25,7 @@ GPS getpos()
 class parachute
 {
     public:
+    int DeploySequence;
     bool pyrocharge;
 
     parachute()
@@ -34,17 +35,17 @@ class parachute
 
     void deploychute()
     {
-        GPS pos;
+        GPS pos = getpos();
         
         pyrocharge = 1;
-        cout << "Recovery System engaged." << endl << "Parachute Deployed." << endl;
+        cout << "Chute #" << DeploySequence << " engaged." << endl << "Parachute Deployed at " << pos.lat << ", " << pos.lon << endl; 
 
-        cout << "Rocket Coordinates: " << endl;
+        // cout << "Rocket Coordinates: " << endl;
 
-        for (int i = 0; i < 20; i++)
-        {
-            pos = getpos();
-            cout << "Lat: " << pos.lat << "Lon: " << pos.lon << endl;
-        }
+        // for (int i = 0; i < 20; i++)
+        // {
+        //     pos = getpos();
+        //     cout << "Lat: " << pos.lat << "Lon: " << pos.lon << endl;
+        // }
     }
 };

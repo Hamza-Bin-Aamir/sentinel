@@ -294,6 +294,16 @@ namespace RocketSensors{
             Type = 'X';
         }
 
+        Sensor(char DType, float DeadlineSeconds){
+            ID = IterationCount++;
+            Raw = DeadlineStack(DeadlineSeconds);
+            Stable = DeadlineStack(DeadlineSeconds);
+            Right = nullptr;
+            Left = nullptr;
+            Parent = nullptr;
+            Type = DType;
+        }
+
         Sensor(char Type): Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type(Type) {};
 
         Sensor() : Raw(DeadlineStack()), Stable(DeadlineStack()), ID(IterationCount++), Right(nullptr), Left(nullptr), Parent(nullptr), Type('X') {};
@@ -463,6 +473,38 @@ namespace RocketSensors{
             }
 
             Insertion->Parent = Position;
+
+            if(Position->getID() < Insertion->getID()){
+                Position->Right = Insertion;
+            }
+            else{
+                Position->Left = Insertion;
+            }
+
+            return Insertion;
+        }
+
+        Sensor* create(char Type, float DeadlineSeconds){
+            if(!Root){
+                Root = new Sensor(Type, DeadlineSeconds);
+                return Root;
+            }
+
+            Sensor* Insertion = new Sensor(Type, DeadlineSeconds);
+            Sensor* Position = Root;
+
+            while(Position->Left || Position->Right){
+                if(Position->Left){
+                    if(Position->Left->getID() > Insertion->getID()){
+                        Position = Position->Left;
+                    }
+                }
+                else if(Position->Right){
+                    if(Position->Right->getID() < Insertion->getID()){
+                        Position = Position->Right;
+                    }
+                }
+            }
 
             if(Position->getID() < Insertion->getID()){
                 Position->Right = Insertion;

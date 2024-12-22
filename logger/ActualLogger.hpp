@@ -18,7 +18,7 @@ struct Coordinates{
         latitude(0), longitude(0), altitude(0) {}
     Coordinates(double lat, double lon, double alt): 
         latitude(lat), longitude(lon), altitude(alt) {}
-}
+};
 
 struct Logs{
     double timestamp;
@@ -32,25 +32,29 @@ struct Logs{
    Logs(): 
         timestamp(0), bearing(0), velocity(0),
         acceleration(0), temperature(0), pressure(0) {}
-}
+};
+
+struct DataNode{
+    Logs logs;
+    DataNode* prev;
+    DataNode* next;
+
+    DataNode(const Logs& d):
+        logs(d),prev(NULL),next(NULL){};
+
+    DataNode(Logs* d):
+        logs(*d),prev(NULL),next(NULL){};
+};
 
 class DataLogger{
     private:
     //For doubly linked list
-    struct DataNode{
-        Logs logs;
-        DataNode* prev;
-        DataNode* next;
-
-        DataNode(Logs& d):
-            data(d),prev(NULL),next(Null){0}
-    };
 
     DataNode* head;
     DataNode* tail;
     long int dataCount;
     static const int CACHE_SIZE = 20;
-    string logFilepath;
+    string logFilePath;
 
     public:
     DataLogger(const string& filePath = "rocket_data.txt"): 
@@ -61,15 +65,15 @@ class DataLogger{
     ss << fixed << setprecision(6);
     
     // Format: timestamp,lat,lon,alt,bearing,velocity,accel,temp,pressure
-    ss << data.timestamp << ","
-       << data.gps.latitude << ","
-       << data.gps.longitude << ","
-       << data.gps.altitude << ","
-       << data.bearing << ","
-       << data.velocity << ","
-       << data.acceleration << ","
-       << data.temperature << ","
-       << data.pressure;
+    ss << logs.timestamp << ","
+       << logs.gps.latitude << ","
+       << logs.gps.longitude << ","
+       << logs.gps.altitude << ","
+       << logs.bearing << ","
+       << logs.velocity << ","
+       << logs.acceleration << ","
+       << logs.temperature << ","
+       << logs.pressure;
     
     return ss.str();
     }
@@ -78,12 +82,12 @@ class DataLogger{
     if(!node)
         return;
 
-    ofstream file(logFilepath, ios::app);
+    ofstream file(logFilePath, ios::app);
     if (!file) {
         throw runtime_error("Unable to open file for writing: " + logFilePath);
     }
 
-    file << formatDataForFile(node->data) << endl;
+    file << formatDataForFile(node->logs) << endl;
     }
 
     Logs parseDataFromFile(const string& line) const {
@@ -93,31 +97,31 @@ class DataLogger{
         try {
             //As the files were formated
             getline(ss, token, ',');
-            data.timestamp = stod(token);
+            logs.timestamp = stod(token);
             
             getline(ss, token, ',');
-            data.gps.latitude = stod(token);
+            logs.gps.latitude = stod(token);
             
             getline(ss, token, ',');
-            data.gps.longitude = stod(token);
+            logs.gps.longitude = stod(token);
             
             getline(ss, token, ',');
-            data.gps.altitude = stod(token);
+            logs.gps.altitude = stod(token);
             
             getline(ss, token, ',');
-            data.bearing = stod(token);
+            logs.bearing = stod(token);
             
             getline(ss, token, ',');
-            data.velocity = stod(token);
+            logs.velocity = stod(token);
             
             getline(ss, token, ',');
-            data.acceleration = stod(token);
+            logs.acceleration = stod(token);
             
             getline(ss, token, ',');
-            data.temperature = stod(token);
+            logs.temperature = stod(token);
             
             getline(ss, token, ',');
-            data.pressure = stod(token);
+            logs.pressure = stod(token);
             
         } catch (const exception& e) {
             throw runtime_error("Error parsing data line: " + line);
@@ -151,9 +155,9 @@ class DataLogger{
     }
 
     // Data retrieval
-    SensorData* getLatestData() const {
+    Logs* getLatestData() {
         if(tail)
-            return &(tail->data);
+            return &(tail->logs);
         else
             return NULL;
     }
@@ -164,7 +168,7 @@ class DataLogger{
         int count = 0;
 
         while (current && count < n) {
-            readings.push_back(current->data);
+            readings.push_back(current->logs);
             current = current->prev;
             count++;
         }
@@ -182,7 +186,7 @@ class DataLogger{
         int count = 0;
 
         while(current){
-            sum += current->data.velocity;
+            sum += current->logs.velocity;
             count++;
             current = current->next;
         }
@@ -210,7 +214,7 @@ class DataLogger{
         return R * c;
     }
 
-    Double TotalDistance()const{
+    double TotalDistance()const{
         if(!head)
             return 0.0;
 
@@ -218,7 +222,7 @@ class DataLogger{
         double totalDistance = 0.0;
 
         while(current){
-            totalDistance += Distance(current->data.gps,current->next->data.gps);
+            totalDistance += Distance(current->logs.gps,current->next->logs.gps);
             current = current->next;
         }
         return totalDistance;
@@ -227,12 +231,12 @@ class DataLogger{
     double MaxAltitude() const {
         if (!head) return 0.0;
         
-        double maxAlt = head->data.gps.altitude;
+        double maxAlt = head->logs.gps.altitude;
         DataNode* current = head->next;
         
         while (current) {
-            if (current->data.gps.altitude > maxAlt) {
-                maxAlt = current->data.gps.altitude;
+            if (current->logs.gps.altitude > maxAlt) {
+                maxAlt = current->logs.gps.altitude;
             }
             current = current->next;
         }
@@ -259,13 +263,13 @@ class DataLogger{
 
         DataNode* current = head;
         while(current){
-            file << formatDataForFile(current->data) << endl;
+            file << formatDataForFile(current->logs) << endl;
             current->next;
         }
     }
 
     void ReadFromFile(){
-        ifstream file(logFilepath);
+        ifstream file(logFilePath);
         if(!file)
             throw runtime_error("Unable to open file for writing: " + logFilePath);
 
